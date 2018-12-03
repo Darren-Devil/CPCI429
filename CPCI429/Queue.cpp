@@ -147,7 +147,7 @@ Return Value:
 			NULL
 		);
 		pDeviceContext->OffsetAddressFromApp = *(ULONG*)inBuffer;
-		WdfRequestCompleteWithInformation(Request, status, sizeof(ULONG));
+		WdfRequestSetInformation(Request, sizeof(ULONG));
 		if (!NT_SUCCESS(status)) {
 			DbgPrint("[%s:%d]: WdfRequest failed", __FUNCDNAME__, __LINE__);
 			goto Exit;
@@ -163,9 +163,8 @@ Return Value:
 		);
 		AddressOffset = CPCI429_WRITE_MEMORY_OFFSET + pDeviceContext->OffsetAddressFromApp;
 		*(ULONG*)WDF_PTR_ADD_OFFSET(pDeviceContext->BAR0_VirtualAddress, AddressOffset) = *(ULONG*)inBuffer;
-		WdfRequestCompleteWithInformation(
+		WdfRequestSetInformation(
 			Request,
-			status,
 			sizeof(ULONG)
 		);
 		if (!NT_SUCCESS(status)) {
@@ -183,9 +182,8 @@ Return Value:
 		);
 		AddressOffset = CPCI429_WRITE_MEMORY_OFFSET + pDeviceContext->OffsetAddressFromApp;
 		*(ULONG*)outBuffer = *(ULONG*)WDF_PTR_ADD_OFFSET(pDeviceContext->BAR0_VirtualAddress, AddressOffset);
-		WdfRequestCompleteWithInformation(
+		WdfRequestSetInformation(
 			Request,
-			status,
 			sizeof(ULONG)
 		);
 		if (!NT_SUCCESS(status)) {
@@ -202,9 +200,8 @@ Return Value:
 			NULL
 		);
 		*(ULONG*)outBuffer = pDeviceContext->PhysicalAddressRegister;
-		WdfRequestCompleteWithInformation(
+		WdfRequestSetInformation(
 			Request,
-			status,
 			sizeof(ULONG)
 		);
 		if (!NT_SUCCESS(status)) {
@@ -215,9 +212,8 @@ Return Value:
 
 	default:
 		status = STATUS_INVALID_DEVICE_REQUEST;
-		WdfRequestCompleteWithInformation(
+		WdfRequestSetInformation(
 			Request,
-			status,
 			0
 		);
 		break;
@@ -228,7 +224,8 @@ Return Value:
                 "%!FUNC! Queue 0x%p, Request 0x%p OutputBufferLength %d InputBufferLength %d IoControlCode %d", 
                 Queue, Request, (int) OutputBufferLength, (int) InputBufferLength, IoControlCode);*/
 
-    WdfRequestComplete(Request, STATUS_SUCCESS);
+    WdfRequestComplete(Request, status);
+	return;
 
 Exit:
 	if (!NT_SUCCESS(status)) {
