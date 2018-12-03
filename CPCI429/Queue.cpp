@@ -223,18 +223,16 @@ Return Value:
                 TRACE_QUEUE, 
                 "%!FUNC! Queue 0x%p, Request 0x%p OutputBufferLength %d InputBufferLength %d IoControlCode %d", 
                 Queue, Request, (int) OutputBufferLength, (int) InputBufferLength, IoControlCode);*/
-
-    WdfRequestComplete(Request, status);
-	return;
-
 Exit:
 	if (!NT_SUCCESS(status)) {
-		WdfRequestCompleteWithInformation(
+		WdfRequestSetInformation(
 			Request,
-			status,
 			0
 		);
 	}
+
+
+	WdfRequestComplete(Request, status);
     return;
 }
 
