@@ -137,9 +137,12 @@ Return Value:
 	device = WdfIoQueueGetDevice(Queue);
 	pDeviceContext = DeviceGetContext(device);
 
+	DbgPrint("CPCI429EvtIoDeviceControl in... \n");
+
 	switch (IoControlCode) {
-	//根据CTL_CODE请求码作相应的处理
+		//根据CTL_CODE请求码作相应的处理
 	case CPCI429_IOCTL_WRITE_OFFSETADDRESS:
+		DbgPrint("_IN_SUCCESSFULLY_");
 		status = WdfRequestRetrieveInputBuffer(
 			Request,
 			sizeof(ULONG),
@@ -147,6 +150,7 @@ Return Value:
 			NULL
 		);
 		pDeviceContext->OffsetAddressFromApp = *(ULONG*)inBuffer;
+		DbgPrint("[%x] CPCI429_IOCTL_WRITE_OFFSETADDRESS inBuffer", inBuffer);
 		WdfRequestSetInformation(Request, sizeof(ULONG));
 		if (!NT_SUCCESS(status)) {
 			DbgPrint("[%s:%d]: WdfRequest failed", __FUNCDNAME__, __LINE__);
@@ -155,6 +159,7 @@ Return Value:
 		break;
 
 	case CPCI429_IOCTL_IN_BUFFERED:
+		DbgPrint(" _IN_SUCCESSFULLY_");
 		status = WdfRequestRetrieveInputBuffer(
 			Request,
 			sizeof(ULONG),
@@ -162,6 +167,7 @@ Return Value:
 			NULL
 		);
 		AddressOffset = CPCI429_WRITE_MEMORY_OFFSET + pDeviceContext->OffsetAddressFromApp;
+		DbgPrint("[%s:%d:%x] AddressOffset", __FUNCDNAME__, __LINE__, AddressOffset);
 		*(ULONG*)WDF_PTR_ADD_OFFSET(pDeviceContext->BAR0_VirtualAddress, AddressOffset) = *(ULONG*)inBuffer;
 		WdfRequestSetInformation(
 			Request,
@@ -174,6 +180,7 @@ Return Value:
 		break;
 
 	case CPCI429_IOCTL_OUT_BUFFERED:
+		DbgPrint(" _IN_SUCCESSFULLY_");
 		status = WdfRequestRetrieveOutputBuffer(
 			Request,
 			sizeof(ULONG),
@@ -193,6 +200,7 @@ Return Value:
 		break;
 
 	case CPCI429_IOCTL_READ_PADDRESS:
+		DbgPrint(" _IN_SUCCESSFULLY_");
 		status = WdfRequestRetrieveOutputBuffer(
 			Request,
 			sizeof(ULONG),
@@ -200,6 +208,7 @@ Return Value:
 			NULL
 		);
 		*(ULONG*)outBuffer = pDeviceContext->PhysicalAddressRegister;
+		DbgPrint("[%s:%d:%x]: CPCI429_IOCTL_READ_PADDRESS outBuffer", __FUNCDNAME__, __LINE__, &outBuffer);
 		WdfRequestSetInformation(
 			Request,
 			sizeof(ULONG)
@@ -227,12 +236,12 @@ Exit:
 	if (!NT_SUCCESS(status)) {
 		WdfRequestSetInformation(
 			Request,
-			0
+			sizeof(ULONG)
 		);
 	}
 
 
-	WdfRequestComplete(Request, status);
+	WdfRequestCompleteWithInformation(Request, status, sizeof(ULONG));
     return;
 }
 
